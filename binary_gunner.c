@@ -4,20 +4,16 @@
 #include "lib/SMSlib.h"
 #include "lib/PSGlib.h"
 #include "actor.h"
-#include "shot.h"
 #include "map.h"
 #include "data.h"
 
-#define PLAYER_TOP (0)
-#define PLAYER_LEFT (0)
+#define PLAYER_TOP (4)
+#define PLAYER_LEFT (8)
 #define PLAYER_RIGHT (256 - 16)
 #define PLAYER_BOTTOM (SCREEN_H - 16)
 #define PLAYER_SPEED (3)	
 
 actor player;
-
-struct ply_ctl {
-} ply_ctl;
 
 void load_standard_palettes() {
 	SMS_loadBGPalette(sprites_palette_bin);
@@ -50,12 +46,10 @@ void main() {
 	SMS_displayOff();
 	SMS_loadPSGaidencompressedTiles(sprites_tiles_psgcompr, 0);
 	load_standard_palettes();
-	
-	draw_map_screen();
 
 	SMS_displayOn();
 	
-	init_actor(&player, 116, PLAYER_BOTTOM - 16, 3, 1, 2, 4);
+	init_actor(&player, 116, PLAYER_BOTTOM - 16, 3, 1, 2, 1);
 	player.animation_delay = 20;
 	
 	while (1) {	
