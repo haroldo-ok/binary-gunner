@@ -154,6 +154,22 @@ actor *check_collision_against_shots(actor *_act) {
 	return 0;
 }
 
+char is_colliding_against_player(actor *_act) {
+	static actor *act;
+	static int act_x, act_y;
+	
+	act = _act;
+	act_x = act->x;
+	act_y = act->y;
+	
+	if (player.x > act_x - 12 && player.x < act_x + 12 &&
+		player.y > act_y - 12 && player.y < act_y + 12) {
+		return 1;
+	}
+	
+	return 0;
+}
+
 void init_enemies() {
 	static actor *enm;
 	
@@ -196,6 +212,10 @@ void handle_enemies() {
 			if (sht) {
 				sht->active = 0;
 				enm->active = 0;
+			}
+			
+			if (is_colliding_against_player(enm)) {
+				enm->active = 0;				
 			}
 		}
 	}	
