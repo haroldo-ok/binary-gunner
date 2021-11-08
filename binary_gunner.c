@@ -18,13 +18,22 @@
 #define PLAYER_SHOT_MAX (8)
 #define FOR_EACH_PLAYER_SHOT(sht) sht = player_shots; for (int i = PLAYER_SHOT_MAX; i; i--, sht++)
 
+#define ENEMY_MAX (3)
+#define FOR_EACH_ENEMY(enm) enm = enemies; for (int i = ENEMY_MAX; i; i--, enm++)
+
 actor player;
 actor player_shots[PLAYER_SHOT_MAX];
+actor enemies[ENEMY_MAX];
 
 struct ply_ctl {
 	char shot_delay;
 	char shot_type;
 } ply_ctl;
+
+struct enemy_spawner {
+	char delay;
+	char next;
+} enemy_spawner;
 
 void load_standard_palettes() {
 	SMS_loadBGPalette(sprites_palette_bin);
@@ -123,6 +132,52 @@ char fire_player_shot() {
 	return fired;
 }
 
+void init_enemies() {
+	static actor *enm;
+	
+	enemy_spawner.delay = 0;
+	enemy_spawner.next = 0;
+	
+	FOR_EACH_ENEMY(enm) {
+		enm->active = 0;
+	}
+}
+
+void handle_enemies() {
+	static actor *enm;
+	
+	if (enemy_spawner.delay) {
+		enemy_spawner.delay--;
+	} else if (enemy_spawner.next != ENEMY_MAX) {
+		enm = enemies + enemy_spawner.next;
+		
+		init_actor(enm, 8, 0, 2, 1, 128, 1);
+		enm->path = (path_step *) path1_path;
+
+		enemy_spawner.delay = 10;
+		enemy_spawner.next++;
+	}
+	
+	FOR_EACH_ENEMY(enm) {
+		move_actor(enm);
+		
+		if (enm->x < -8 || enm->x > 255 || enm->y < -16 || enm->y > 192) {
+			enm->x = 8;
+			enm->y = 0;
+			enm->path = (path_step *) path1_path;
+			enm->curr_step = 0;
+		}
+	}	
+}
+
+void draw_enemies() {
+	static actor *enm;
+	
+	FOR_EACH_ENEMY(enm) {
+		draw_actor(enm);
+	}
+}
+
 void main() {	
 	SMS_useFirstHalfTilesforSprites(1);
 	SMS_setSpriteMode(SPRITEMODE_TALL);
@@ -139,15 +194,18 @@ void main() {
 	ply_ctl.shot_delay = 0;
 	ply_ctl.shot_type = 0;
 	
+	init_enemies();
 	init_player_shots();
 
 	while (1) {	
 		handle_player_input();
+		handle_enemies();
 		handle_player_shots();
 	
 		SMS_initSprites();
 
 		draw_actor(&player);
+		draw_enemies();
 		draw_player_shots();		
 		
 		SMS_finalizeSprites();
