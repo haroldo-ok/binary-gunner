@@ -1,5 +1,5 @@
 PRJNAME := binary_gunner
-OBJS := data.rel actor.rel map.rel binary_gunner.rel
+OBJS := data.rel actor.rel map.rel shot.rel binary_gunner.rel
 
 all: $(PRJNAME).sms
 
