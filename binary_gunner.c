@@ -31,6 +31,8 @@ struct ply_ctl {
 } ply_ctl;
 
 struct enemy_spawner {
+	char x;
+	char flags;
 	char delay;
 	char next;
 	char all_dead;
@@ -173,7 +175,8 @@ char is_colliding_against_player(actor *_act) {
 
 void init_enemies() {
 	static actor *enm;
-	
+
+	enemy_spawner.x = 0;	
 	enemy_spawner.delay = 0;
 	enemy_spawner.next = 0;
 	
@@ -188,10 +191,19 @@ void handle_enemies() {
 	if (enemy_spawner.delay) {
 		enemy_spawner.delay--;
 	} else if (enemy_spawner.next != ENEMY_MAX) {
+		if (!enemy_spawner.x) {
+			enemy_spawner.x = 8 + rand() % 124;
+			enemy_spawner.flags = 0;
+			if (rand() & 1) {
+				enemy_spawner.x += 124;
+				enemy_spawner.flags |= PATH_FLIP_X;
+			}
+		}
+		
 		enm = enemies + enemy_spawner.next;
 		
-		init_actor(enm, 8, 0, 2, 1, 128, 1);
-		enm->path_flags = 0;
+		init_actor(enm, enemy_spawner.x, 0, 2, 1, 128, 1);
+		enm->path_flags = enemy_spawner.flags;
 		enm->path = (path_step *) path1_path;
 
 		enemy_spawner.delay = 10;
@@ -202,7 +214,7 @@ void handle_enemies() {
 	FOR_EACH_ENEMY(enm) {
 		move_actor(enm);
 		
-		if (enm->x < -8 || enm->x > 255 || enm->y < -16 || enm->y > 192) {
+		if (enm->x < -32 || enm->x > 287 || enm->y < -16 || enm->y > 192) {
 			enm->active = 0;
 		}
 
@@ -222,6 +234,7 @@ void handle_enemies() {
 	}	
 	
 	if (enemy_spawner.all_dead) {
+		enemy_spawner.x = 0;
 		enemy_spawner.next = 0;
 	}
 }
