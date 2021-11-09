@@ -51,7 +51,8 @@ void init_actor(actor *act, int x, int y, int char_w, int char_h, unsigned char 
 	sa->frame = 0;
 	sa->frame_increment = char_w * (char_h << 1);
 	sa->frame_max = sa->frame_increment * frame_count;
-	
+
+	sa->path_flags = 0;
 	sa->path = 0;
 	sa->curr_step = 0;
 	
@@ -79,8 +80,8 @@ void move_actor(actor *act) {
 		step = act->curr_step++;
 		if (step->x == -128) step = act->curr_step = act->path;
 		
-		act->x += step->x;
-		act->y += step->y;
+		act->x += (act->path_flags & PATH_FLIP_X) ? -step->x : step->x;
+		act->y += (act->path_flags & PATH_FLIP_Y) ? -step->y : step->y;
 	}
 	
 	if (_act->state_timer) _act->state_timer--;

@@ -189,7 +189,8 @@ void handle_enemies() {
 	} else if (enemy_spawner.next != ENEMY_MAX) {
 		enm = enemies + enemy_spawner.next;
 		
-		init_actor(enm, 8, 0, 2, 1, 128, 1);
+		init_actor(enm, 8, 192, 2, 1, 128, 1);
+		enm->path_flags = 0;
 		enm->path = (path_step *) path1_path;
 
 		enemy_spawner.delay = 10;
