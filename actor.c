@@ -68,6 +68,7 @@ void init_actor(actor *act, int x, int y, int char_w, int char_h, unsigned char 
 void move_actor(actor *act) {
 	static actor *_act;
 	static path_step *step;
+	static char path_flags;
 	
 	if (!act->active) {
 		return;
@@ -80,8 +81,16 @@ void move_actor(actor *act) {
 		step = act->curr_step++;
 		if (step->x == -128) step = act->curr_step = act->path;
 		
-		act->x += (act->path_flags & PATH_FLIP_X) ? -step->x : step->x;
-		act->y += (act->path_flags & PATH_FLIP_Y) ? -step->y : step->y;
+		path_flags = act->path_flags;
+		act->x += (path_flags & PATH_FLIP_X) ? -step->x : step->x;
+		act->y += (path_flags & PATH_FLIP_Y) ? -step->y : step->y;
+		
+		if (path_flags & PATH_2X_SPEED) {
+			step = act->curr_step++;
+			if (step->x == -128) step = act->curr_step = act->path;
+			act->x += (path_flags & PATH_FLIP_X) ? -step->x : step->x;
+			act->y += (path_flags & PATH_FLIP_Y) ? -step->y : step->y;
+		}
 	}
 	
 	if (_act->state_timer) _act->state_timer--;

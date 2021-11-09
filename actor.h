@@ -10,6 +10,7 @@
 
 #define PATH_FLIP_X (0x01)
 #define PATH_FLIP_Y (0x02)
+#define PATH_2X_SPEED (0x04)
 
 
 typedef union _fixed {
