@@ -31,6 +31,7 @@ struct ply_ctl {
 } ply_ctl;
 
 struct enemy_spawner {
+	char type;
 	char x;
 	char flags;
 	char delay;
@@ -192,6 +193,7 @@ void handle_enemies() {
 		enemy_spawner.delay--;
 	} else if (enemy_spawner.next != ENEMY_MAX) {
 		if (!enemy_spawner.x) {
+			enemy_spawner.type = rand() & 1;
 			enemy_spawner.x = 8 + rand() % 124;
 			enemy_spawner.flags = 0;
 			if (rand() & 1) {
@@ -202,7 +204,7 @@ void handle_enemies() {
 		
 		enm = enemies + enemy_spawner.next;
 		
-		init_actor(enm, enemy_spawner.x, 0, 2, 1, 128, 1);
+		init_actor(enm, enemy_spawner.x, 0, 2, 1, enemy_spawner.type ? 132 : 128, 1);
 		enm->path_flags = enemy_spawner.flags;
 		enm->path = (path_step *) path1_path;
 
@@ -258,7 +260,7 @@ void main() {
 
 	SMS_displayOn();
 	
-	init_actor(&player, 116, PLAYER_BOTTOM - 16, 3, 1, 2, 1);
+	init_actor(&player, 116, PLAYER_BOTTOM - 16, 2, 1, 2, 1);
 	player.animation_delay = 20;
 	ply_ctl.shot_delay = 0;
 	ply_ctl.shot_type = 0;
