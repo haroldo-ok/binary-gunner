@@ -20,6 +20,7 @@
 
 #define ENEMY_MAX (3)
 #define FOR_EACH_ENEMY(enm) enm = enemies; for (char enemy_index = ENEMY_MAX; enemy_index; enemy_index--, enm++)
+#define ENEMY_PATH_MAX (2)
 
 actor player;
 actor player_shots[PLAYER_SHOT_MAX];
@@ -36,8 +37,13 @@ struct enemy_spawner {
 	char flags;
 	char delay;
 	char next;
+	path_step *path;
 	char all_dead;
 } enemy_spawner;
+
+const path_step *enemy_paths[ENEMY_PATH_MAX] = {
+	(path_step *) path1_path, (path_step *) path2_path
+};
 
 void load_standard_palettes() {
 	SMS_loadBGPalette(sprites_palette_bin);
@@ -196,6 +202,7 @@ void handle_enemies() {
 			enemy_spawner.type = rand() & 1;
 			enemy_spawner.x = 8 + rand() % 124;
 			enemy_spawner.flags = 0;
+			enemy_spawner.path = enemy_paths[rand() % ENEMY_PATH_MAX];
 			if (rand() & 1) {
 				enemy_spawner.x += 124;
 				enemy_spawner.flags |= PATH_FLIP_X;
@@ -206,7 +213,7 @@ void handle_enemies() {
 		
 		init_actor(enm, enemy_spawner.x, 0, 2, 1, enemy_spawner.type ? 132 : 128, 1);
 		enm->path_flags = enemy_spawner.flags;
-		enm->path = (path_step *) path1_path;
+		enm->path = enemy_spawner.path;
 
 		enemy_spawner.delay = 10;
 		enemy_spawner.next++;
