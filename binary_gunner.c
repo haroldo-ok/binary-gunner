@@ -20,7 +20,7 @@
 
 #define ENEMY_MAX (3)
 #define FOR_EACH_ENEMY(enm) enm = enemies; for (char enemy_index = ENEMY_MAX; enemy_index; enemy_index--, enm++)
-#define ENEMY_PATH_MAX (2)
+#define ENEMY_PATH_MAX (4)
 
 actor player;
 actor player_shots[PLAYER_SHOT_MAX];
@@ -42,7 +42,10 @@ struct enemy_spawner {
 } enemy_spawner;
 
 const path_step *enemy_paths[ENEMY_PATH_MAX] = {
-	(path_step *) path1_path, (path_step *) path2_path
+	(path_step *) path1_path, 
+	(path_step *) path2_path,
+	(path_step *) path3_path,
+	(path_step *) path4_path
 };
 
 void load_standard_palettes() {

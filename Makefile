@@ -3,7 +3,7 @@ OBJS := data.rel actor.rel map.rel shot.rel binary_gunner.rel
 
 all: $(PRJNAME).sms
 
-data.c: data/* data/sprites_tiles.psgcompr data/path1.path data/path2.path
+data.c: data/* data/sprites_tiles.psgcompr data/path1.path data/path2.path data/path3.path data/path4.path
 	folder2c data data
 	
 data/sprites_tiles.psgcompr: data/img/sprites.png
@@ -14,6 +14,12 @@ data/path1.path: data/path/path1.spline.json
 
 data/path2.path: data/path/path2.spline.json
 	node tool/convert_splines.js data/path/path2.spline.json data/path2.path
+
+data/path3.path: data/path/path3.spline.json
+	node tool/convert_splines.js data/path/path3.spline.json data/path3.path
+
+data/path4.path: data/path/path4.spline.json
+	node tool/convert_splines.js data/path/path4.spline.json data/path4.path
 	
 %.vgm: %.wav
 	psgtalk -r 512 -u 1 -m vgm $<
