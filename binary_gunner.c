@@ -20,6 +20,7 @@
 
 #define ENEMY_MAX (3)
 #define FOR_EACH_ENEMY(enm) enm = enemies; for (char enemy_index = ENEMY_MAX; enemy_index; enemy_index--, enm++)
+#define ENEMY_PATH_MAX (4)
 
 actor player;
 actor player_shots[PLAYER_SHOT_MAX];
@@ -31,9 +32,21 @@ struct ply_ctl {
 } ply_ctl;
 
 struct enemy_spawner {
+	char type;
+	char x;
+	char flags;
 	char delay;
 	char next;
+	path_step *path;
+	char all_dead;
 } enemy_spawner;
+
+const path_step *enemy_paths[ENEMY_PATH_MAX] = {
+	(path_step *) path1_path, 
+	(path_step *) path2_path,
+	(path_step *) path3_path,
+	(path_step *) path4_path
+};
 
 void load_standard_palettes() {
 	SMS_loadBGPalette(sprites_palette_bin);
@@ -172,7 +185,8 @@ char is_colliding_against_player(actor *_act) {
 
 void init_enemies() {
 	static actor *enm;
-	
+
+	enemy_spawner.x = 0;	
 	enemy_spawner.delay = 0;
 	enemy_spawner.next = 0;
 	
@@ -182,29 +196,38 @@ void init_enemies() {
 }
 
 void handle_enemies() {
-	static actor *enm, *sht;
+	static actor *enm, *sht;	
 	
 	if (enemy_spawner.delay) {
 		enemy_spawner.delay--;
 	} else if (enemy_spawner.next != ENEMY_MAX) {
+		if (!enemy_spawner.x) {
+			enemy_spawner.type = rand() & 1;
+			enemy_spawner.x = 8 + rand() % 124;
+			enemy_spawner.flags = 0;
+			enemy_spawner.path = enemy_paths[rand() % ENEMY_PATH_MAX];
+			if (rand() & 1) {
+				enemy_spawner.x += 124;
+				enemy_spawner.flags |= PATH_FLIP_X;
+			}
+		}
+		
 		enm = enemies + enemy_spawner.next;
 		
-		init_actor(enm, 8, 0, 2, 1, 128, 1);
-		enm->path = (path_step *) path1_path;
+		init_actor(enm, enemy_spawner.x, 0, 2, 1, enemy_spawner.type ? 132 : 128, 1);
+		enm->path_flags = enemy_spawner.flags;
+		enm->path = enemy_spawner.path;
 
 		enemy_spawner.delay = 10;
 		enemy_spawner.next++;
 	}
 	
+	enemy_spawner.all_dead = 1;
 	FOR_EACH_ENEMY(enm) {
 		move_actor(enm);
 		
-		if (!enm->active || enm->x < -8 || enm->x > 255 || enm->y < -16 || enm->y > 192) {
-			enm->x = 8;
-			enm->y = 0;
-			enm->path = (path_step *) path1_path;
-			enm->curr_step = 0;
-			enm->active = 1;
+		if (enm->x < -32 || enm->x > 287 || enm->y < -16 || enm->y > 192) {
+			enm->active = 0;
 		}
 
 		if (enm->active) {
@@ -218,7 +241,14 @@ void handle_enemies() {
 				enm->active = 0;				
 			}
 		}
+		
+		if (enm->active) enemy_spawner.all_dead = 0;
 	}	
+	
+	if (enemy_spawner.all_dead) {
+		enemy_spawner.x = 0;
+		enemy_spawner.next = 0;
+	}
 }
 
 void draw_enemies() {
@@ -240,7 +270,7 @@ void main() {
 
 	SMS_displayOn();
 	
-	init_actor(&player, 116, PLAYER_BOTTOM - 16, 3, 1, 2, 1);
+	init_actor(&player, 116, PLAYER_BOTTOM - 16, 2, 1, 2, 1);
 	player.animation_delay = 20;
 	ply_ctl.shot_delay = 0;
 	ply_ctl.shot_type = 0;
