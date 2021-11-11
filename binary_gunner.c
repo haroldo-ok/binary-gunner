@@ -6,6 +6,7 @@
 #include "actor.h"
 #include "shot.h"
 #include "map.h"
+#include "score.h"
 #include "data.h"
 
 #define PLAYER_TOP (4)
@@ -25,6 +26,8 @@
 actor player;
 actor player_shots[PLAYER_SHOT_MAX];
 actor enemies[ENEMY_MAX];
+
+score_display score;
 
 struct ply_ctl {
 	char shot_delay;
@@ -277,17 +280,20 @@ void main() {
 	
 	init_enemies();
 	init_player_shots();
+	init_score_display(&score, 16, 8, 236);
 
 	while (1) {	
 		handle_player_input();
 		handle_enemies();
 		handle_player_shots();
+		increment_score_display(&score, 1);
 	
 		SMS_initSprites();
 
 		draw_actor(&player);
 		draw_enemies();
-		draw_player_shots();		
+		draw_player_shots();
+		draw_score_display(&score);
 		
 		SMS_finalizeSprites();
 		SMS_waitForVBlank();
