@@ -148,6 +148,10 @@ char fire_player_shot() {
 	return fired;
 }
 
+void update_score() {
+	increment_score_display(&score, 10);
+}
+
 actor *check_collision_against_shots(actor *_act) {
 	static actor *act, *sht;
 	static int act_x, act_y;
@@ -238,6 +242,7 @@ void handle_enemies() {
 			if (sht) {
 				sht->active = 0;
 				enm->active = 0;
+				update_score();
 			}
 			
 			if (is_colliding_against_player(enm)) {
@@ -286,7 +291,6 @@ void main() {
 		handle_player_input();
 		handle_enemies();
 		handle_player_shots();
-		increment_score_display(&score, 1);
 	
 		SMS_initSprites();
 

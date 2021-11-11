@@ -23,6 +23,27 @@ void increment_score_display(score_display *score, int delta) {
 	update_score_display(score, score->value + delta);
 }
 
+// Adapted from https://stackoverflow.com/a/784455/679240
+void reverse_string(char *str) {
+    static char *start, *end, temp;
+	
+    /* get range */
+    start = str;
+    end = start + strlen(str) - 1; /* -1 for \0 */
+
+    /* reverse */
+    while (end > start) {
+        /* swap */
+        temp = *start;
+        *start = *end;
+        *end = temp;
+
+        /* move */
+        start++;
+        end--;
+    }
+}
+
 void update_score_display_characters(score_display *_score) {
 	static score_display *score;
 	static unsigned int remaining;
@@ -43,6 +64,8 @@ void update_score_display_characters(score_display *_score) {
 		ch++;
 	} while (remaining);
 	*ch = 0;
+	
+	reverse_string(score->characters);
 	
 	score->dirty = 0;
 }
