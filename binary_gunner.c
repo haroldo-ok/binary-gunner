@@ -26,8 +26,10 @@
 actor player;
 actor player_shots[PLAYER_SHOT_MAX];
 actor enemies[ENEMY_MAX];
+actor chain_label;
 
 score_display score;
+score_display chain;
 
 struct ply_ctl {
 	char shot_delay;
@@ -285,7 +287,10 @@ void main() {
 	
 	init_enemies();
 	init_player_shots();
+
 	init_score_display(&score, 16, 8, 236);
+	init_actor(&chain_label, 16, 24, 3, 1, 180, 1);
+	init_score_display(&chain, 16, 40, 236);
 
 	while (1) {	
 		handle_player_input();
@@ -298,6 +303,8 @@ void main() {
 		draw_enemies();
 		draw_player_shots();
 		draw_score_display(&score);
+		draw_actor(&chain_label);
+		draw_score_display(&chain);
 		
 		SMS_finalizeSprites();
 		SMS_waitForVBlank();
