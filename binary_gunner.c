@@ -38,6 +38,7 @@ struct ply_ctl {
 	char shot_type;
 	char pressed_shot_selection;
 	char color;
+	char death_delay;
 } ply_ctl;
 
 char timer_delay;
@@ -83,25 +84,33 @@ void handle_player_input() {
 		if (player.y < PLAYER_BOTTOM) player.y += PLAYER_SPEED;
 	}
 
-	if (joy & PORT_A_KEY_2) {
-		if (!ply_ctl.shot_delay) {
-			if (fire_player_shot()) {
-				ply_ctl.shot_delay = player_shot_infos[ply_ctl.shot_type].firing_delay;
+	if (ply_ctl.death_delay) {
+		ply_ctl.death_delay--;
+	} else {
+		if (joy & PORT_A_KEY_2) {
+			if (!ply_ctl.shot_delay) {
+				if (fire_player_shot()) {
+					ply_ctl.shot_delay = player_shot_infos[ply_ctl.shot_type].firing_delay;
+				}
 			}
 		}
-	}
-	
-	if (joy & PORT_A_KEY_1) {
-		if (!ply_ctl.pressed_shot_selection) {
-			ply_ctl.color = (ply_ctl.color + 1) & 1;
-			player.base_tile = ply_ctl.color ? 6 : 2;
-			ply_ctl.pressed_shot_selection = 1;			
+		
+		if (joy & PORT_A_KEY_1) {
+			if (!ply_ctl.pressed_shot_selection) {
+				ply_ctl.color = (ply_ctl.color + 1) & 1;
+				player.base_tile = ply_ctl.color ? 6 : 2;
+				ply_ctl.pressed_shot_selection = 1;			
+			}
+		} else {
+			ply_ctl.pressed_shot_selection = 0;
 		}
-	} else {
-		ply_ctl.pressed_shot_selection = 0;
-	}
 
-	if (ply_ctl.shot_delay) ply_ctl.shot_delay--;
+		if (ply_ctl.shot_delay) ply_ctl.shot_delay--;
+	}
+}
+
+void draw_player() {
+	if (!(ply_ctl.death_delay & 0x08)) draw_actor(&player);
 }
 
 void init_player_shots() {
@@ -276,8 +285,9 @@ void handle_enemies() {
 				update_score(enm, sht);
 			}
 			
-			if (is_colliding_against_player(enm)) {
-				enm->active = 0;				
+			if (!ply_ctl.death_delay && is_colliding_against_player(enm)) {
+				enm->active = 0;
+				ply_ctl.death_delay = 120;
 			}
 		}
 		
@@ -350,6 +360,7 @@ void main() {
 	ply_ctl.shot_delay = 0;
 	ply_ctl.shot_type = 0;
 	ply_ctl.pressed_shot_selection = 0;
+	ply_ctl.death_delay = 0;
 	
 	init_enemies();
 	init_player_shots();
@@ -363,7 +374,7 @@ void main() {
 	
 		SMS_initSprites();
 
-		draw_actor(&player);
+		draw_player();
 		draw_enemies();
 		draw_player_shots();
 		draw_score();
