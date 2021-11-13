@@ -56,7 +56,7 @@ const path_step *enemy_paths[ENEMY_PATH_MAX] = {
 };
 
 void load_standard_palettes() {
-	SMS_loadBGPalette(sprites_palette_bin);
+	SMS_loadBGPalette(tileset_palette_bin);
 	SMS_loadSpritePalette(sprites_palette_bin);
 	SMS_setSpritePaletteColor(0, 0);
 }
@@ -305,7 +305,11 @@ void main() {
 
 	SMS_displayOff();
 	SMS_loadPSGaidencompressedTiles(sprites_tiles_psgcompr, 0);
+	SMS_loadPSGaidencompressedTiles(tileset_tiles_psgcompr, 256);
 	load_standard_palettes();
+
+	init_map(level1_bin);
+	draw_map_screen();
 
 	SMS_displayOn();
 	
@@ -337,6 +341,10 @@ void main() {
 		SMS_finalizeSprites();
 		SMS_waitForVBlank();
 		SMS_copySpritestoSAT();
+		
+		// Scroll two lines per frame
+		draw_map();		
+		draw_map();		
 	}
 }
 
