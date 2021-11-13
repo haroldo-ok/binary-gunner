@@ -164,8 +164,12 @@ char fire_player_shot() {
 
 void update_score(actor *enm, actor *sht) {
 	// Hit the wrong enemy: reset the chain.
-	if (enm->state != chain_label.state || sht->state != chain_label.state) {
+	if (enm->state != sht->state) {
 		update_score_display(&chain, 0);
+	}
+	
+	// Shot an enemy of a different color: change the chain color
+	if (enm->state != chain_label.state) {
 		chain_label.state = enm->state;
 		chain_label.base_tile = chain_label.state ? 186 : 180;
 	}
