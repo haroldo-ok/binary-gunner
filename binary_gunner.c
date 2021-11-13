@@ -6,6 +6,7 @@
 #include "actor.h"
 #include "shot.h"
 #include "map.h"
+#include "score.h"
 #include "data.h"
 
 #define PLAYER_TOP (4)
@@ -25,10 +26,16 @@
 actor player;
 actor player_shots[PLAYER_SHOT_MAX];
 actor enemies[ENEMY_MAX];
+actor chain_label;
+
+score_display score;
+score_display chain;
 
 struct ply_ctl {
 	char shot_delay;
 	char shot_type;
+	char pressed_shot_selection;
+	char color;
 } ply_ctl;
 
 struct enemy_spawner {
@@ -80,6 +87,16 @@ void handle_player_input() {
 		}
 	}
 	
+	if (joy & PORT_A_KEY_1) {
+		if (!ply_ctl.pressed_shot_selection) {
+			ply_ctl.color = (ply_ctl.color + 1) & 1;
+			player.base_tile = ply_ctl.color ? 6 : 2;
+			ply_ctl.pressed_shot_selection = 1;			
+		}
+	} else {
+		ply_ctl.pressed_shot_selection = 0;
+	}
+
 	if (ply_ctl.shot_delay) ply_ctl.shot_delay--;
 }
 
@@ -127,10 +144,10 @@ char fire_player_shot() {
 			init_actor(sht, 
 				player.x + path->x, player.y + path->y, 
 				1, 1, 
-				info->base_tile, info->frame_count);
+				info->base_tile + (ply_ctl.color << 1), info->frame_count);
 				
 			sht->path = path->steps;
-			sht->state = 1;
+			sht->state = ply_ctl.color;
 			sht->state_timer = info->life_time;
 						
 			// Fired something
@@ -143,6 +160,18 @@ char fire_player_shot() {
 
 	// Didn't fire anything
 	return fired;
+}
+
+void update_score(actor *enm, actor *sht) {
+	// Hit the wrong enemy: reset the chain.
+	if (enm->state != chain_label.state || sht->state != chain_label.state) {
+		update_score_display(&chain, 0);
+		chain_label.state = enm->state;
+		chain_label.base_tile = chain_label.state ? 186 : 180;
+	}
+	
+	increment_score_display(&chain, 1);
+	increment_score_display(&score, chain.value);
 }
 
 actor *check_collision_against_shots(actor *_act) {
@@ -217,6 +246,7 @@ void handle_enemies() {
 		init_actor(enm, enemy_spawner.x, 0, 2, 1, enemy_spawner.type ? 132 : 128, 1);
 		enm->path_flags = enemy_spawner.flags;
 		enm->path = enemy_spawner.path;
+		enm->state = enemy_spawner.type;
 
 		enemy_spawner.delay = 10;
 		enemy_spawner.next++;
@@ -235,6 +265,7 @@ void handle_enemies() {
 			if (sht) {
 				sht->active = 0;
 				enm->active = 0;
+				update_score(enm, sht);
 			}
 			
 			if (is_colliding_against_player(enm)) {
@@ -259,6 +290,14 @@ void draw_enemies() {
 	}
 }
 
+void draw_score() {
+	draw_score_display(&score);
+	if (chain.value > 1) {
+		draw_actor(&chain_label);
+		draw_score_display(&chain);
+	}
+}
+
 void main() {	
 	SMS_useFirstHalfTilesforSprites(1);
 	SMS_setSpriteMode(SPRITEMODE_TALL);
@@ -274,9 +313,14 @@ void main() {
 	player.animation_delay = 20;
 	ply_ctl.shot_delay = 0;
 	ply_ctl.shot_type = 0;
+	ply_ctl.pressed_shot_selection = 0;
 	
 	init_enemies();
 	init_player_shots();
+
+	init_score_display(&score, 16, 8, 236);
+	init_actor(&chain_label, 16, 24, 3, 1, 180, 1);
+	init_score_display(&chain, 16, 40, 236);
 
 	while (1) {	
 		handle_player_input();
@@ -287,7 +331,8 @@ void main() {
 
 		draw_actor(&player);
 		draw_enemies();
-		draw_player_shots();		
+		draw_player_shots();
+		draw_score();
 		
 		SMS_finalizeSprites();
 		SMS_waitForVBlank();
