@@ -26,8 +26,10 @@
 actor player;
 actor player_shots[PLAYER_SHOT_MAX];
 actor enemies[ENEMY_MAX];
+actor timer_label;
 actor chain_label;
 
+score_display timer;
 score_display score;
 score_display chain;
 
@@ -37,6 +39,8 @@ struct ply_ctl {
 	char pressed_shot_selection;
 	char color;
 } ply_ctl;
+
+char timer_delay;
 
 struct enemy_spawner {
 	char type;
@@ -295,13 +299,31 @@ void draw_enemies() {
 }
 
 void init_score() {
-	init_score_display(&score, 16, 8, 236);
-	init_actor(&chain_label, 16, 24, 3, 1, 180, 1);
-	init_score_display(&chain, 16, 40, 236);
+	init_actor(&timer_label, 16, 8, 1, 1, 178, 1);
+	init_score_display(&timer, 24, 8, 236);
+	update_score_display(&timer, 60);
+	timer_delay = 60;
+	
+	init_score_display(&score, 16, 24, 236);
+	init_actor(&chain_label, 16, 40, 3, 1, 180, 1);
+	init_score_display(&chain, 16, 56, 236);
+}
+
+void handle_score() {
+	if (timer_delay) {
+		timer_delay--;
+	} else {
+		if (timer.value) increment_score_display(&timer, -1);
+		timer_delay = 60;
+	}
 }
 
 void draw_score() {
+	draw_actor(&timer_label);
+	draw_score_display(&timer);
+
 	draw_score_display(&score);
+
 	if (chain.value > 1) {
 		draw_actor(&chain_label);
 		draw_score_display(&chain);
@@ -337,6 +359,7 @@ void main() {
 		handle_player_input();
 		handle_enemies();
 		handle_player_shots();
+		handle_score();
 	
 		SMS_initSprites();
 
