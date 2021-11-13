@@ -150,8 +150,16 @@ char fire_player_shot() {
 	return fired;
 }
 
-void update_score() {
-	increment_score_display(&score, 10);
+void update_score(actor *enm) {
+	// Hit the wrong enemy: reset the chain.
+	if (enm->state != chain_label.state) {
+		update_score_display(&chain, 0);
+		chain_label.state = enm->state;
+		chain_label.base_tile = chain_label.state ? 186 : 180;
+	}
+	
+	increment_score_display(&chain, 1);
+	increment_score_display(&score, chain.value);
 }
 
 actor *check_collision_against_shots(actor *_act) {
@@ -226,6 +234,7 @@ void handle_enemies() {
 		init_actor(enm, enemy_spawner.x, 0, 2, 1, enemy_spawner.type ? 132 : 128, 1);
 		enm->path_flags = enemy_spawner.flags;
 		enm->path = enemy_spawner.path;
+		enm->state = enemy_spawner.type;
 
 		enemy_spawner.delay = 10;
 		enemy_spawner.next++;
@@ -244,7 +253,7 @@ void handle_enemies() {
 			if (sht) {
 				sht->active = 0;
 				enm->active = 0;
-				update_score();
+				update_score(enm);
 			}
 			
 			if (is_colliding_against_player(enm)) {
@@ -266,6 +275,14 @@ void draw_enemies() {
 	
 	FOR_EACH_ENEMY(enm) {
 		draw_actor(enm);
+	}
+}
+
+void draw_score() {
+	draw_score_display(&score);
+	if (chain.value > 1) {
+		draw_actor(&chain_label);
+		draw_score_display(&chain);
 	}
 }
 
@@ -302,9 +319,7 @@ void main() {
 		draw_actor(&player);
 		draw_enemies();
 		draw_player_shots();
-		draw_score_display(&score);
-		draw_actor(&chain_label);
-		draw_score_display(&chain);
+		draw_score();
 		
 		SMS_finalizeSprites();
 		SMS_waitForVBlank();
