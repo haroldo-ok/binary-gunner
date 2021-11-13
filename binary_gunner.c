@@ -308,6 +308,9 @@ void main() {
 	SMS_loadPSGaidencompressedTiles(tileset_tiles_psgcompr, 256);
 	load_standard_palettes();
 
+	init_map(level1_bin);
+	draw_map_screen();
+
 	SMS_displayOn();
 	
 	init_actor(&player, 116, PLAYER_BOTTOM - 16, 2, 1, 2, 1);
@@ -338,6 +341,10 @@ void main() {
 		SMS_finalizeSprites();
 		SMS_waitForVBlank();
 		SMS_copySpritestoSAT();
+		
+		// Scroll two lines per frame
+		draw_map();		
+		draw_map();		
 	}
 }
 
