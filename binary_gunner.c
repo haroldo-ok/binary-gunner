@@ -290,6 +290,12 @@ void draw_enemies() {
 	}
 }
 
+void init_score() {
+	init_score_display(&score, 16, 8, 236);
+	init_actor(&chain_label, 16, 24, 3, 1, 180, 1);
+	init_score_display(&chain, 16, 40, 236);
+}
+
 void draw_score() {
 	draw_score_display(&score);
 	if (chain.value > 1) {
@@ -321,10 +327,7 @@ void main() {
 	
 	init_enemies();
 	init_player_shots();
-
-	init_score_display(&score, 16, 8, 236);
-	init_actor(&chain_label, 16, 24, 3, 1, 180, 1);
-	init_score_display(&chain, 16, 40, 236);
+	init_score();
 
 	while (1) {	
 		handle_player_input();
@@ -349,7 +352,7 @@ void main() {
 }
 
 SMS_EMBED_SEGA_ROM_HEADER(9999,0); // code 9999 hopefully free, here this means 'homebrew'
-SMS_EMBED_SDSC_HEADER(0,1, 2021,11,07, "Haroldo-OK\\2021", "Dragon Blaster",
+SMS_EMBED_SDSC_HEADER(0,2, 2021,11,13, "Haroldo-OK\\2021", "Dragon Blaster",
   "A cybernetic shoot-em-up.\n"
   "Made for the SHMUP JAM 2 - Neon - https://itch.io/jam/shmup-jam-2-neon\n"
   "Built using devkitSMS & SMSlib - https://github.com/sverx/devkitSMS");
