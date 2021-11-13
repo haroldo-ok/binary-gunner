@@ -26,8 +26,11 @@
 actor player;
 actor player_shots[PLAYER_SHOT_MAX];
 actor enemies[ENEMY_MAX];
+actor timer_label;
 actor chain_label;
+actor time_over;
 
+score_display timer;
 score_display score;
 score_display chain;
 
@@ -36,7 +39,10 @@ struct ply_ctl {
 	char shot_type;
 	char pressed_shot_selection;
 	char color;
+	char death_delay;
 } ply_ctl;
+
+char timer_delay;
 
 struct enemy_spawner {
 	char type;
@@ -79,25 +85,33 @@ void handle_player_input() {
 		if (player.y < PLAYER_BOTTOM) player.y += PLAYER_SPEED;
 	}
 
-	if (joy & PORT_A_KEY_2) {
-		if (!ply_ctl.shot_delay) {
-			if (fire_player_shot()) {
-				ply_ctl.shot_delay = player_shot_infos[ply_ctl.shot_type].firing_delay;
+	if (ply_ctl.death_delay) {
+		ply_ctl.death_delay--;
+	} else {
+		if (joy & PORT_A_KEY_2) {
+			if (!ply_ctl.shot_delay) {
+				if (fire_player_shot()) {
+					ply_ctl.shot_delay = player_shot_infos[ply_ctl.shot_type].firing_delay;
+				}
 			}
 		}
-	}
-	
-	if (joy & PORT_A_KEY_1) {
-		if (!ply_ctl.pressed_shot_selection) {
-			ply_ctl.color = (ply_ctl.color + 1) & 1;
-			player.base_tile = ply_ctl.color ? 6 : 2;
-			ply_ctl.pressed_shot_selection = 1;			
+		
+		if (joy & PORT_A_KEY_1) {
+			if (!ply_ctl.pressed_shot_selection) {
+				ply_ctl.color = (ply_ctl.color + 1) & 1;
+				player.base_tile = ply_ctl.color ? 6 : 2;
+				ply_ctl.pressed_shot_selection = 1;			
+			}
+		} else {
+			ply_ctl.pressed_shot_selection = 0;
 		}
-	} else {
-		ply_ctl.pressed_shot_selection = 0;
-	}
 
-	if (ply_ctl.shot_delay) ply_ctl.shot_delay--;
+		if (ply_ctl.shot_delay) ply_ctl.shot_delay--;
+	}
+}
+
+void draw_player() {
+	if (!(ply_ctl.death_delay & 0x08)) draw_actor(&player);
 }
 
 void init_player_shots() {
@@ -164,8 +178,12 @@ char fire_player_shot() {
 
 void update_score(actor *enm, actor *sht) {
 	// Hit the wrong enemy: reset the chain.
-	if (enm->state != chain_label.state || sht->state != chain_label.state) {
+	if (enm->state != sht->state) {
 		update_score_display(&chain, 0);
+	}
+	
+	// Shot an enemy of a different color: change the chain color
+	if (enm->state != chain_label.state) {
 		chain_label.state = enm->state;
 		chain_label.base_tile = chain_label.state ? 186 : 180;
 	}
@@ -268,8 +286,9 @@ void handle_enemies() {
 				update_score(enm, sht);
 			}
 			
-			if (is_colliding_against_player(enm)) {
-				enm->active = 0;				
+			if (!ply_ctl.death_delay && is_colliding_against_player(enm)) {
+				enm->active = 0;
+				ply_ctl.death_delay = 120;
 			}
 		}
 		
@@ -290,15 +309,39 @@ void draw_enemies() {
 	}
 }
 
+void init_score() {
+	init_actor(&timer_label, 16, 8, 1, 1, 178, 1);
+	init_score_display(&timer, 24, 8, 236);
+	update_score_display(&timer, 60);
+	timer_delay = 60;
+	
+	init_score_display(&score, 16, 24, 236);
+	init_actor(&chain_label, 16, 40, 3, 1, 180, 1);
+	init_score_display(&chain, 16, 56, 236);
+}
+
+void handle_score() {
+	if (timer_delay) {
+		timer_delay--;
+	} else {
+		if (timer.value) increment_score_display(&timer, -1);
+		timer_delay = 60;
+	}
+}
+
 void draw_score() {
+	draw_actor(&timer_label);
+	draw_score_display(&timer);
+
 	draw_score_display(&score);
+
 	if (chain.value > 1) {
 		draw_actor(&chain_label);
 		draw_score_display(&chain);
 	}
 }
 
-void main() {	
+void gameplay_loop() {
 	SMS_useFirstHalfTilesforSprites(1);
 	SMS_setSpriteMode(SPRITEMODE_TALL);
 	SMS_VDPturnOnFeature(VDPFEATURE_HIDEFIRSTCOL);
@@ -318,22 +361,22 @@ void main() {
 	ply_ctl.shot_delay = 0;
 	ply_ctl.shot_type = 0;
 	ply_ctl.pressed_shot_selection = 0;
-	
+	ply_ctl.color = 0;
+	ply_ctl.death_delay = 0;
+
 	init_enemies();
 	init_player_shots();
+	init_score();
 
-	init_score_display(&score, 16, 8, 236);
-	init_actor(&chain_label, 16, 24, 3, 1, 180, 1);
-	init_score_display(&chain, 16, 40, 236);
-
-	while (1) {	
+	while (timer.value) {	
 		handle_player_input();
 		handle_enemies();
 		handle_player_shots();
+		handle_score();
 	
 		SMS_initSprites();
 
-		draw_actor(&player);
+		draw_player();
 		draw_enemies();
 		draw_player_shots();
 		draw_score();
@@ -348,8 +391,49 @@ void main() {
 	}
 }
 
+void timeover_sequence() {
+	char timeover_delay = 128;
+	char pressed_button = 0;
+	
+	init_actor(&time_over, 107, 64, 6, 1, 116, 1);
+
+	while (timeover_delay || !pressed_button) {
+		SMS_initSprites();
+
+		if (!(timeover_delay & 0x10)) draw_actor(&time_over);
+		
+		draw_player();
+		draw_enemies();
+		draw_player_shots();
+		draw_score();
+		
+		SMS_finalizeSprites();
+		SMS_waitForVBlank();
+		SMS_copySpritestoSAT();
+		
+		draw_map();
+		
+		if (timeover_delay) {
+			timeover_delay--;
+		} else {
+			pressed_button = SMS_getKeysStatus() & (PORT_A_KEY_1 | PORT_A_KEY_2);
+		}
+	}
+	
+	do {
+		SMS_waitForVBlank();
+	} while (SMS_getKeysStatus() & (PORT_A_KEY_1 | PORT_A_KEY_2));
+}
+
+void main() {	
+	while (1) {
+		gameplay_loop();
+		timeover_sequence();
+	}
+}
+
 SMS_EMBED_SEGA_ROM_HEADER(9999,0); // code 9999 hopefully free, here this means 'homebrew'
-SMS_EMBED_SDSC_HEADER(0,1, 2021,11,07, "Haroldo-OK\\2021", "Dragon Blaster",
+SMS_EMBED_SDSC_HEADER(0,2, 2021,11,13, "Haroldo-OK\\2021", "Dragon Blaster",
   "A cybernetic shoot-em-up.\n"
   "Made for the SHMUP JAM 2 - Neon - https://itch.io/jam/shmup-jam-2-neon\n"
   "Built using devkitSMS & SMSlib - https://github.com/sverx/devkitSMS");

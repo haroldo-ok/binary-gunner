@@ -11,5 +11,5 @@ const path default_paths[] = {
 
 
 const shot_info player_shot_infos[PLAYER_SHOT_TYPE_COUNT] = {
-	{64, 1, 45, 6, 1, default_paths}, // 0
+	{64, 1, 45, 10, 1, default_paths}, // 0
 };
