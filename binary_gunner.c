@@ -28,6 +28,7 @@ actor player_shots[PLAYER_SHOT_MAX];
 actor enemies[ENEMY_MAX];
 actor timer_label;
 actor chain_label;
+actor time_over;
 
 score_display timer;
 score_display score;
@@ -311,7 +312,8 @@ void draw_enemies() {
 void init_score() {
 	init_actor(&timer_label, 16, 8, 1, 1, 178, 1);
 	init_score_display(&timer, 24, 8, 236);
-	update_score_display(&timer, 60);
+	//update_score_display(&timer, 60);
+	update_score_display(&timer, 3);
 	timer_delay = 60;
 	
 	init_score_display(&score, 16, 24, 236);
@@ -340,7 +342,7 @@ void draw_score() {
 	}
 }
 
-void main() {	
+void gameplay_loop() {
 	SMS_useFirstHalfTilesforSprites(1);
 	SMS_setSpriteMode(SPRITEMODE_TALL);
 	SMS_VDPturnOnFeature(VDPFEATURE_HIDEFIRSTCOL);
@@ -366,7 +368,7 @@ void main() {
 	init_player_shots();
 	init_score();
 
-	while (1) {	
+	while (timer.value) {	
 		handle_player_input();
 		handle_enemies();
 		handle_player_shots();
@@ -387,6 +389,31 @@ void main() {
 		draw_map();		
 		draw_map();		
 	}
+}
+
+void timeover_sequence() {
+	init_actor(&time_over, 107, 64, 6, 1, 116, 1);
+
+	while (1) {
+		SMS_initSprites();
+
+		draw_actor(&time_over);
+		draw_player();
+		draw_enemies();
+		draw_player_shots();
+		draw_score();
+		
+		SMS_finalizeSprites();
+		SMS_waitForVBlank();
+		SMS_copySpritestoSAT();
+		
+		draw_map();		
+	}
+}
+
+void main() {	
+	gameplay_loop();
+	timeover_sequence();
 }
 
 SMS_EMBED_SEGA_ROM_HEADER(9999,0); // code 9999 hopefully free, here this means 'homebrew'
