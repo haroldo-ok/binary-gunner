@@ -4,7 +4,7 @@ OBJS := data.rel actor.rel map.rel shot.rel score.rel binary_gunner.rel
 all: $(PRJNAME).sms
 
 data.c: data/* data/sprites_tiles.psgcompr data/tileset_tiles.psgcompr data/level1.bin \
-	data/path1.path data/path2.path data/path3.path data/path4.path 
+	data/path1.path data/path2.path data/path3.path data/path4.path data/player_shot.psg
 	folder2c data data
 	
 data/sprites_tiles.psgcompr: data/img/sprites.png

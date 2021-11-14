@@ -164,6 +164,8 @@ char fire_player_shot() {
 			sht->state = ply_ctl.color;
 			sht->state_timer = info->life_time;
 						
+			PSGPlayNoRepeat(player_shot_psg);
+
 			// Fired something
 			fired = 1;
 			path++;
@@ -341,6 +343,11 @@ void draw_score() {
 	}
 }
 
+void interrupt_handler() {
+	PSGFrame();
+	PSGSFXFrame();
+}
+
 void gameplay_loop() {
 	SMS_useFirstHalfTilesforSprites(1);
 	SMS_setSpriteMode(SPRITEMODE_TALL);
@@ -353,6 +360,10 @@ void gameplay_loop() {
 
 	init_map(level1_bin);
 	draw_map_screen();
+
+	SMS_setLineInterruptHandler(&interrupt_handler);
+	SMS_setLineCounter(180);
+	SMS_enableLineInterrupt();
 
 	SMS_displayOn();
 	
