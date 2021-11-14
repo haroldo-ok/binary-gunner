@@ -5,7 +5,7 @@ all: $(PRJNAME).sms
 
 data.c: data/* data/sprites_tiles.psgcompr data/tileset_tiles.psgcompr data/level1.bin \
 	data/path1.path data/path2.path data/path3.path data/path4.path \
-	data/player_shot.psg data/enemy_death.psg
+	data/player_shot.psg data/enemy_death.psg data/player_death.psg
 	folder2c data data
 	
 data/sprites_tiles.psgcompr: data/img/sprites.png
@@ -31,6 +31,9 @@ data/level1.bin: data/map/level1.tmx
 	
 data/enemy_death.psg: data/deflemask/enemy_death.vgm
 	vgm2psg data/deflemask/enemy_death.vgm data/enemy_death.psg 23
+
+data/player_death.psg: data/deflemask/player_death.vgm
+	vgm2psg data/deflemask/player_death.vgm data/player_death.psg
 
 %.vgm: %.wav
 	psgtalk -r 512 -u 1 -m vgm $<

@@ -292,6 +292,7 @@ void handle_enemies() {
 			if (!ply_ctl.death_delay && is_colliding_against_player(enm)) {
 				enm->active = 0;
 				ply_ctl.death_delay = 120;
+				PSGPlayNoRepeat(player_death_psg);
 			}
 		}
 		
