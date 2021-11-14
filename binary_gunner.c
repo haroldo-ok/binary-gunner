@@ -372,6 +372,15 @@ void title_sequence() {
 	SMS_setBGScrollX(0);	
 	SMS_setBGScrollY(0);	
 
+	SMS_loadPSGaidencompressedTiles(jam_tiles_psgcompr, 0);
+	SMS_loadTileMap(0, 0, jam_tilemap_bin, jam_tilemap_bin_size);
+	SMS_loadBGPalette(jam_palette_bin);
+	
+	SMS_displayOn();
+	wait_frames(90);
+
+	SMS_displayOff();
+
 	SMS_loadPSGaidencompressedTiles(title_tiles_psgcompr, 0);
 	SMS_loadTileMap(0, 0, title_tilemap_bin, title_tilemap_bin_size);
 	SMS_loadBGPalette(title_palette_bin);
