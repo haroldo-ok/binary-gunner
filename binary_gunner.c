@@ -345,9 +345,50 @@ void draw_score() {
 	}
 }
 
+void wait_button_press() {
+	do {
+		SMS_waitForVBlank();
+	} while (!(SMS_getKeysStatus() & (PORT_A_KEY_1 | PORT_A_KEY_2)));
+}
+
+void wait_button_release() {
+	do {
+		SMS_waitForVBlank();
+	} while (SMS_getKeysStatus() & (PORT_A_KEY_1 | PORT_A_KEY_2));
+}
+
 void interrupt_handler() {
 	PSGFrame();
 	PSGSFXFrame();
+}
+
+void title_sequence() {
+	SMS_waitForVBlank();
+	SMS_displayOff();
+
+	SMS_disableLineInterrupt();
+	clear_sprites();
+
+	SMS_setBGScrollX(0);	
+	SMS_setBGScrollY(0);	
+
+	SMS_loadPSGaidencompressedTiles(jam_tiles_psgcompr, 0);
+	SMS_loadTileMap(0, 0, jam_tilemap_bin, jam_tilemap_bin_size);
+	SMS_loadBGPalette(jam_palette_bin);
+	
+	SMS_displayOn();
+	wait_frames(90);
+
+	SMS_displayOff();
+
+	SMS_loadPSGaidencompressedTiles(title_tiles_psgcompr, 0);
+	SMS_loadTileMap(0, 0, title_tilemap_bin, title_tilemap_bin_size);
+	SMS_loadBGPalette(title_palette_bin);
+	
+	SMS_displayOn();
+	
+	wait_button_press();
+	wait_button_release();
 }
 
 void gameplay_loop() {
@@ -433,20 +474,19 @@ void timeover_sequence() {
 		}
 	}
 	
-	do {
-		SMS_waitForVBlank();
-	} while (SMS_getKeysStatus() & (PORT_A_KEY_1 | PORT_A_KEY_2));
+	wait_button_release();
 }
 
 void main() {	
 	while (1) {
+		title_sequence();
 		gameplay_loop();
 		timeover_sequence();
 	}
 }
 
 SMS_EMBED_SEGA_ROM_HEADER(9999,0); // code 9999 hopefully free, here this means 'homebrew'
-SMS_EMBED_SDSC_HEADER(0,3, 2021,11,14, "Haroldo-OK\\2021", "Dragon Blaster",
+SMS_EMBED_SDSC_HEADER(0,4, 2021,11,14, "Haroldo-OK\\2021", "Dragon Blaster",
   "A cybernetic shoot-em-up.\n"
   "Made for the SHMUP JAM 2 - Neon - https://itch.io/jam/shmup-jam-2-neon\n"
   "Built using devkitSMS & SMSlib - https://github.com/sverx/devkitSMS");

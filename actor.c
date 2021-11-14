@@ -125,3 +125,9 @@ void draw_actor(actor *act) {
 void wait_frames(int wait_time) {
 	for (; wait_time; wait_time--) SMS_waitForVBlank();
 }
+
+void clear_sprites() {
+	SMS_initSprites();	
+	SMS_finalizeSprites();
+	SMS_copySpritestoSAT();
+}
