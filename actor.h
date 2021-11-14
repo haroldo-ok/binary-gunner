@@ -60,5 +60,6 @@ void move_actor(actor *act);
 void draw_actor(actor *act);
 
 void wait_frames(int wait_time);
+void clear_sprites();
 
 #endif /* ACTOR_H */
