@@ -286,6 +286,7 @@ void handle_enemies() {
 				sht->active = 0;
 				enm->active = 0;
 				update_score(enm, sht);
+				PSGSFXPlay(enemy_death_psg, SFX_CHANNELS2AND3);
 			}
 			
 			if (!ply_ctl.death_delay && is_colliding_against_player(enm)) {
