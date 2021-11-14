@@ -164,6 +164,8 @@ char fire_player_shot() {
 			sht->state = ply_ctl.color;
 			sht->state_timer = info->life_time;
 						
+			PSGPlayNoRepeat(player_shot_psg);
+
 			// Fired something
 			fired = 1;
 			path++;
@@ -284,11 +286,13 @@ void handle_enemies() {
 				sht->active = 0;
 				enm->active = 0;
 				update_score(enm, sht);
+				PSGSFXPlay(enemy_death_psg, SFX_CHANNELS2AND3);
 			}
 			
 			if (!ply_ctl.death_delay && is_colliding_against_player(enm)) {
 				enm->active = 0;
 				ply_ctl.death_delay = 120;
+				PSGPlayNoRepeat(player_death_psg);
 			}
 		}
 		
@@ -341,6 +345,11 @@ void draw_score() {
 	}
 }
 
+void interrupt_handler() {
+	PSGFrame();
+	PSGSFXFrame();
+}
+
 void gameplay_loop() {
 	SMS_useFirstHalfTilesforSprites(1);
 	SMS_setSpriteMode(SPRITEMODE_TALL);
@@ -353,6 +362,10 @@ void gameplay_loop() {
 
 	init_map(level1_bin);
 	draw_map_screen();
+
+	SMS_setLineInterruptHandler(&interrupt_handler);
+	SMS_setLineCounter(180);
+	SMS_enableLineInterrupt();
 
 	SMS_displayOn();
 	
@@ -433,7 +446,7 @@ void main() {
 }
 
 SMS_EMBED_SEGA_ROM_HEADER(9999,0); // code 9999 hopefully free, here this means 'homebrew'
-SMS_EMBED_SDSC_HEADER(0,2, 2021,11,13, "Haroldo-OK\\2021", "Dragon Blaster",
+SMS_EMBED_SDSC_HEADER(0,3, 2021,11,14, "Haroldo-OK\\2021", "Dragon Blaster",
   "A cybernetic shoot-em-up.\n"
   "Made for the SHMUP JAM 2 - Neon - https://itch.io/jam/shmup-jam-2-neon\n"
   "Built using devkitSMS & SMSlib - https://github.com/sverx/devkitSMS");
