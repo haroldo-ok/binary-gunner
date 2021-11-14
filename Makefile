@@ -3,7 +3,8 @@ OBJS := data.rel actor.rel map.rel shot.rel score.rel binary_gunner.rel
 
 all: $(PRJNAME).sms
 
-data.c: data/* data/sprites_tiles.psgcompr data/tileset_tiles.psgcompr data/title_tiles.psgcompr data/level1.bin \
+data.c: data/* data/sprites_tiles.psgcompr data/tileset_tiles.psgcompr data/title_tiles.psgcompr data/jam_tiles.psgcompr \
+	data/level1.bin \
 	data/path1.path data/path2.path data/path3.path data/path4.path \
 	data/player_shot.psg data/enemy_death.psg data/player_death.psg
 	folder2c data data
@@ -16,6 +17,9 @@ data/tileset_tiles.psgcompr: data/img/tileset.png
 
 data/title_tiles.psgcompr: data/img/title.png
 	BMP2Tile.exe data/img/title.png -palsms -fullpalette -savetiles data/title_tiles.psgcompr -savetilemap data/title_tilemap.bin -savepalette data/title_palette.bin
+
+data/jam_tiles.psgcompr: data/img/jam.png
+	BMP2Tile.exe data/img/jam.png -palsms -fullpalette -savetiles data/jam_tiles.psgcompr -savetilemap data/jam_tilemap.bin -savepalette data/jam_palette.bin
 
 data/path1.path: data/path/path1.spline.json
 	node tool/convert_splines.js data/path/path1.spline.json data/path1.path
